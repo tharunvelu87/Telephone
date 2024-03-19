@@ -39,5 +39,6 @@ jobs:
       ./configure --prefix=${{ github.workspace }}/ThirdParty/PJSIP --disable-video --disable-libyuv --disable-libwebrtc --host=arm-apple-darwin CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13' CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13'
       make lib
       make install
+      
 
 
