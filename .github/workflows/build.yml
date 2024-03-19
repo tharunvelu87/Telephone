@@ -1,6 +1,9 @@
-name: Build
+name: Build and Release
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -15,7 +18,6 @@ jobs:
         brew install curl
         brew install gpg
 
-
     - name: Build PJSIP
       run: |
         curl -o pjproject-2.10.tar.gz https://codeload.github.com/pjsip/pjproject/tar.gz/2.10
@@ -28,4 +30,14 @@ jobs:
         echo '#define PJ_DNS_SRV_MAX_ADDR 32' >> pjlib/include/pj/config_site.h
         echo '#define PJSIP_MAX_RESOLVED_ADDRESSES 32' >> pjlib/include/pj/config_site.h
         echo '#define PJ_HAS_IPV6 1' >> pjlib/include/pj/config_site.h
-        # Add build commands for PJSIP here
+        ./configure --prefix=${{ github.workspace }}/ThirdParty/PJSIP --disable-video --disable-libyuv --disable-libwebrtc --host=arm-apple-darwin CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13' CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13'
+        make lib
+        make install
+
+        - name: Build Telephone
+    run: |
+      ./configure --prefix=${{ github.workspace }}/ThirdParty/PJSIP --disable-video --disable-libyuv --disable-libwebrtc --host=arm-apple-darwin CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13' CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13'
+      make lib
+      make install
+
+
