@@ -17,7 +17,7 @@ jobs:
       - name: Select Xcode 16.2
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.2.0"
+          xcode-version: '16.2.0'
 
       - name: Install build tools
         run: |
@@ -85,8 +85,8 @@ jobs:
             -configuration Release \
             -arch arm64 -arch x86_64 \
             ONLY_ACTIVE_ARCH=NO \
-            HEADER_SEARCH_PATHS="'$(pwd)/ThirdParty/Opus/include $(pwd)/ThirdParty/LibreSSL/include $(pwd)/ThirdParty/PJSIP/include $(pwd)/ReceiptValidation/ASN1'" \
-            LIBRARY_SEARCH_PATHS="'$(pwd)/ThirdParty/Opus/lib $(pwd)/ThirdParty/LibreSSL/lib $(pwd)/ThirdParty/PJSIP/lib'" \
+            HEADER_SEARCH_PATHS="$(pwd)/ThirdParty/Opus/include $(pwd)/ThirdParty/LibreSSL/include $(pwd)/ThirdParty/PJSIP/include $(pwd)/ReceiptValidation/ASN1" \
+            LIBRARY_SEARCH_PATHS="$(pwd)/ThirdParty/Opus/lib $(pwd)/ThirdParty/LibreSSL/lib $(pwd)/ThirdParty/PJSIP/lib" \
             OTHER_LDFLAGS="-lopus -lssl -lcrypto -lpj -lpjlib-util -lpjnath -lpjmedia -lpjmedia-codec" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
