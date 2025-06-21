@@ -1,9 +1,9 @@
 name: Build and Release1
 
 on:
-  # manual trigger if you want:
+  # Manual “Run workflow” button
   workflow_dispatch:
-  # still run on any tag push
+  # Still auto-run on any tag push
   push:
     tags:
       - '*'
@@ -27,14 +27,14 @@ jobs:
           tar xzvf pjproject-2.10.tar.gz
           cd pjproject-2.10
           cat << 'EOF' >> pjlib/include/pj/config_site.h
-    #define PJSIP_DONT_SWITCH_TO_TCP 1
-    #define PJSUA_MAX_ACC 32
-    #define PJMEDIA_RTP_PT_TELEPHONE_EVENTS 101
-    #define PJ_DNS_MAX_IP_IN_A_REC 32
-    #define PJ_DNS_SRV_MAX_ADDR 32
-    #define PJSIP_MAX_RESOLVED_ADDRESSES 32
-    #define PJ_HAS_IPV6 1
-    EOF
+#define PJSIP_DONT_SWITCH_TO_TCP 1
+#define PJSUA_MAX_ACC 32
+#define PJMEDIA_RTP_PT_TELEPHONE_EVENTS 101
+#define PJ_DNS_MAX_IP_IN_A_REC 32
+#define PJ_DNS_SRV_MAX_ADDR 32
+#define PJSIP_MAX_RESOLVED_ADDRESSES 32
+#define PJ_HAS_IPV6 1
+EOF
           ./configure --prefix="${{ github.workspace }}/ThirdParty/PJSIP" \
                       --disable-video --disable-libyuv --disable-libwebrtc \
                       --host=arm-apple-darwin \
@@ -45,11 +45,8 @@ jobs:
 
       - name: Build Telephone
         run: |
-          # replace this with your real Telephone build commands:
           xcodebuild \
             -project Telephone.xcodeproj \
             -scheme Telephone \
             -configuration Release \
             ONLY_ACTIVE_ARCH=NO
-
-      # …any further steps (e.g. upload artifacts)…
