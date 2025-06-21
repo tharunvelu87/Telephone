@@ -1,9 +1,9 @@
 name: Build and Release1
 
 on:
-  # Manual “Run workflow” button
+  # Allow manual runs from the Actions UI
   workflow_dispatch:
-  # Still auto-run on any tag push
+  # Also run automatically on any tag push
   push:
     tags:
       - '*'
@@ -23,23 +23,22 @@ jobs:
 
       - name: Build PJSIP
         run: |
-          curl -o pjproject-2.10.tar.gz https://codeload.github.com/pjsip/pjproject/tar.gz/2.10
+          curl -L -o pjproject-2.10.tar.gz https://codeload.github.com/pjsip/pjproject/tar.gz/2.10
           tar xzvf pjproject-2.10.tar.gz
           cd pjproject-2.10
-          cat << 'EOF' >> pjlib/include/pj/config_site.h
-#define PJSIP_DONT_SWITCH_TO_TCP 1
-#define PJSUA_MAX_ACC 32
-#define PJMEDIA_RTP_PT_TELEPHONE_EVENTS 101
-#define PJ_DNS_MAX_IP_IN_A_REC 32
-#define PJ_DNS_SRV_MAX_ADDR 32
-#define PJSIP_MAX_RESOLVED_ADDRESSES 32
-#define PJ_HAS_IPV6 1
-EOF
-          ./configure --prefix="${{ github.workspace }}/ThirdParty/PJSIP" \
-                      --disable-video --disable-libyuv --disable-libwebrtc \
-                      --host=arm-apple-darwin \
-                      CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13' \
-                      CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13'
+          echo '#define PJSIP_DONT_SWITCH_TO_TCP 1'   >> pjlib/include/pj/config_site.h
+          echo '#define PJSUA_MAX_ACC 32'             >> pjlib/include/pj/config_site.h
+          echo '#define PJMEDIA_RTP_PT_TELEPHONE_EVENTS 101' >> pjlib/include/pj/config_site.h
+          echo '#define PJ_DNS_MAX_IP_IN_A_REC 32'     >> pjlib/include/pj/config_site.h
+          echo '#define PJ_DNS_SRV_MAX_ADDR 32'       >> pjlib/include/pj/config_site.h
+          echo '#define PJSIP_MAX_RESOLVED_ADDRESSES 32' >> pjlib/include/pj/config_site.h
+          echo '#define PJ_HAS_IPV6 1'                >> pjlib/include/pj/config_site.h
+          ./configure \
+            --prefix="${{ github.workspace }}/ThirdParty/PJSIP" \
+            --disable-video --disable-libyuv --disable-libwebrtc \
+            --host=arm-apple-darwin \
+            CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13' \
+            CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13'
           make lib
           make install
 
