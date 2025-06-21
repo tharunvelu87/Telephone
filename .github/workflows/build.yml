@@ -1,9 +1,7 @@
-name: Build and Release1
+name: Build and Release
 
 on:
-  # Allow manual runs from the Actions UI
   workflow_dispatch:
-  # Also run automatically on any tag push
   push:
     tags:
       - '*'
@@ -13,39 +11,58 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
 
       - name: Install dependencies
         run: |
-          brew install curl
-          brew install gpg
+          brew update
+          brew install curl gpg
 
       - name: Build PJSIP
         run: |
           curl -L -o pjproject-2.10.tar.gz https://codeload.github.com/pjsip/pjproject/tar.gz/2.10
-          tar xzvf pjproject-2.10.tar.gz
+          tar xzf pjproject-2.10.tar.gz
           cd pjproject-2.10
-          echo '#define PJSIP_DONT_SWITCH_TO_TCP 1'   >> pjlib/include/pj/config_site.h
-          echo '#define PJSUA_MAX_ACC 32'             >> pjlib/include/pj/config_site.h
+          echo '#define PJSIP_DONT_SWITCH_TO_TCP 1'         >> pjlib/include/pj/config_site.h
+          echo '#define PJSUA_MAX_ACC 32'                   >> pjlib/include/pj/config_site.h
           echo '#define PJMEDIA_RTP_PT_TELEPHONE_EVENTS 101' >> pjlib/include/pj/config_site.h
-          echo '#define PJ_DNS_MAX_IP_IN_A_REC 32'     >> pjlib/include/pj/config_site.h
-          echo '#define PJ_DNS_SRV_MAX_ADDR 32'       >> pjlib/include/pj/config_site.h
-          echo '#define PJSIP_MAX_RESOLVED_ADDRESSES 32' >> pjlib/include/pj/config_site.h
-          echo '#define PJ_HAS_IPV6 1'                >> pjlib/include/pj/config_site.h
+          echo '#define PJ_DNS_MAX_IP_IN_A_REC 32'           >> pjlib/include/pj/config_site.h
+          echo '#define PJ_DNS_SRV_MAX_ADDR 32'             >> pjlib/include/pj/config_site.h
+          echo '#define PJSIP_MAX_RESOLVED_ADDRESSES 32'     >> pjlib/include/pj/config_site.h
+          echo '#define PJ_HAS_IPV6 1'                      >> pjlib/include/pj/config_site.h
           ./configure \
             --prefix="${{ github.workspace }}/ThirdParty/PJSIP" \
             --disable-video --disable-libyuv --disable-libwebrtc \
             --host=arm-apple-darwin \
-            CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13' \
-            CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=10.13'
-          make lib
-          make install
+            CFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=13.5' \
+            CXXFLAGS='-arch arm64 -arch x86_64 -Os -DNDEBUG -mmacosx-version-min=13.5'
+          make lib && make install
+          cd ..
 
-      - name: Build Telephone
+      - name: Build Telephone.app
         run: |
           xcodebuild \
             -project Telephone.xcodeproj \
             -scheme Telephone \
             -configuration Release \
-            ONLY_ACTIVE_ARCH=NO
+            -arch arm64 -arch x86_64 \
+            ONLY_ACTIVE_ARCH=NO \
+            HEADER_SEARCH_PATHS="$(pwd)/ThirdParty/Opus/include $(pwd)/ThirdParty/LibreSSL/include $(pwd)/ThirdParty/PJSIP/include $(pwd)/ReceiptValidation/ASN1" \
+            LIBRARY_SEARCH_PATHS="$(pwd)/ThirdParty/Opus/lib $(pwd)/ThirdParty/LibreSSL/lib $(pwd)/ThirdParty/PJSIP/lib" \
+            OTHER_LDFLAGS="-lopus -lssl -lcrypto -lpj -lpjlib-util -lpjnath -lpjmedia -lpjmedia-codec" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            SYMROOT="$(pwd)/build"
+
+      - name: Upload built app artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Telephone.app
+          path: build/Release/Telephone.app
