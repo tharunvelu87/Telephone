@@ -27,7 +27,7 @@ jobs:
       - name: Build PJSIP
         run: |
           curl -L -o pjproject-2.10.tar.gz https://codeload.github.com/pjsip/pjproject/tar.gz/2.10
-          tar xzf pjproject-2.10.tar.gz
+          tar xzvf pjproject-2.10.tar.gz
           cd pjproject-2.10
           echo '#define PJSIP_DONT_SWITCH_TO_TCP 1'         >> pjlib/include/pj/config_site.h
           echo '#define PJSUA_MAX_ACC 32'                   >> pjlib/include/pj/config_site.h
@@ -62,7 +62,7 @@ jobs:
             SYMROOT="$(pwd)/build"
 
       - name: Upload built app artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Telephone.app
           path: build/Release/Telephone.app
